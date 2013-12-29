@@ -1,0 +1,1 @@
+O presente trabalho foi construído com base no artigo "Uma Hierarquia de Classes para Construção de Autômatos Finitos".
