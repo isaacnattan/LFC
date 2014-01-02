@@ -1,4 +1,4 @@
-package main;
+package automato;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,7 +96,25 @@ public class Automato {
                 options, options[0]);
         return i;
     }
+    
+    // getters dos atributos
+    public HashMap<Integer, Estado> getEstados() {
+        return estados;
+    }
 
+    public HashMap<Integer, Estado> getEstadosFinais() {
+        return estadosFinais;
+    }
+
+    public HashSet<Transicao> getTransicoes() {
+        return transicoes;
+    }
+
+    public Estado getEstadoInicial() {
+        return estadoInicial;
+    }
+    
+    // testes
     public static void main(String[] args) {
         Automato meuAutomato = new Automato();
         String cadeia = "abababb";

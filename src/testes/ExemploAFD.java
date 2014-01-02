@@ -1,8 +1,8 @@
-package teste;
+package testes;
 
-import main.Automato;
-import main.Estado;
-import main.Transicao;
+import automato.Automato;
+import automato.Estado;
+import automato.Transicao;
 
 public class ExemploAFD {
 
