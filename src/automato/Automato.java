@@ -2,23 +2,23 @@ package automato;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import javax.swing.JOptionPane;
 
 public class Automato {
-    // Pode haver um conjunto de estados e estados finais
+    // -Pode haver um conjunto de estados e estados finais
+    // -No aplicativo o caracter * tera um significado especial:
+    // representara a transicao epsilon
 
     private HashMap<String, Estado> estados, estadosFinais;
     // Um comjunto de transicoes
-    private HashSet<Transicao> transicoes;
+    private ArrayList<Transicao> transicoes;
     // Mas somente um estado inicial
     private Estado estadoInicial;
 
     public Automato() {
         estados = new HashMap<>();
         estadosFinais = new HashMap<>();
-        transicoes = new HashSet<>();
+        transicoes = new ArrayList<>();
     }
 
     public void setEstado(String identificador) {
@@ -36,24 +36,7 @@ public class Automato {
     public void removeEstado(String identificador) {
         if (estados.containsKey(identificador)) {
             estados.remove(identificador);
-        } else if (estadosFinais.containsKey(identificador)) {
-            if (mensagemDeConfirmacao(
-                    "Você está prestes a excluir um estado final.")
-                    == JOptionPane.YES_OPTION) {
-                estadosFinais.remove(identificador);
-            }
-        } else {
-            if (estadoInicial.getID().equals(identificador)) {
-                if (mensagemDeConfirmacao(
-                        "Você está prestes a excluir o estado inicial.")
-                        == JOptionPane.YES_OPTION) {
-                    String novoIdentificador = javax.swing.JOptionPane.showInputDialog(null,
-                            "Você deve escolher outro estado inicial."
-                            + "\nInsira um identificador válido: ");
-                    setEstadoInicial(novoIdentificador);
-                }
-            }
-        }
+        } 
     }
 
     /**
@@ -91,29 +74,14 @@ public class Automato {
         }
     }
 
-    public void removeTransicao(ArrayList<Transicao> t) {
-        /*Iterator<Transicao> it = transicoes.iterator();
-        while (it.hasNext()) {
-            Transicao t1 = it.next();
-            if (t.getOrigem().equals(t1.getOrigem())
-                    && t.getSimbolo().equals(t1.getSimbolo())
-                    && t.getDestino().equals(t1.getDestino())) {
-                it.remove();
+    public void removeTransicao(Transicao t) {
+        for (int i = 0; i < transicoes.size(); i++) {
+            if (t.getDestino().equals(transicoes.get(i).getDestino())
+                    && t.getOrigem().equals(transicoes.get(i).getOrigem())
+                    && t.getSimbolo().equals(transicoes.get(i).getSimbolo())) {
+                transicoes.remove(transicoes.get(i));
             }
-        }*/
-        transicoes.removeAll(t);
-    }
-
-    // metodos auxiliares
-    private int mensagemDeConfirmacao(String mensagem) {
-        Object[] options = {"Sim", "Não"};
-        int i;
-        i = JOptionPane.showOptionDialog(null,
-                mensagem
-                + "\nDeseja prosseguir?", "Questão",
-                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                options, options[0]);
-        return i;
+        }
     }
 
     // getters dos atributos
@@ -125,7 +93,7 @@ public class Automato {
         return estadosFinais;
     }
 
-    public HashSet<Transicao> getTransicoes() {
+    public ArrayList<Transicao> getTransicoes() {
         return transicoes;
     }
 

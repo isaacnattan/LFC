@@ -22,14 +22,19 @@ public class AFNParaAFD {
     //desempenho
     private long timeInicial;
     private long timeFinal;
-    
 
     public AFNParaAFD(Automato afn) {
         this.AFN = afn;
         AFD = new Automato();
         setEstadosAFD();
         setTransicoes();
-        simplificaTransicoes();
+        imprimeTransicoesAFD();
+        tratarTransicoesEpsilons();
+        imprimeTransicoesAFD();
+        simplificaAFD();
+        imprimeTransicoesAFD();
+        setEstadoInicial();
+        setEstadoFinal();
     }
 
     /**
@@ -80,7 +85,7 @@ public class AFNParaAFD {
      * conjunto de estados do AFD. Aqui constam todas as transicoes. Ex.: se o
      * AFD tem 3 simbolos e 8 estados logo 3x8=24 transicoes. 3 transicoes para
      * cada estado, mesmo que no alfabeto conste transicao epsilon. Um outro
-     * metodo mais a frente se encarregara de fazer simplificacoes.
+     * metodo mais a frente se encarregara de fazer simplificacoes. Ps.:
      */
     private void setTransicoes() {
         timeInicial = System.currentTimeMillis();
@@ -120,6 +125,7 @@ public class AFNParaAFD {
             }
         });
         ArrayList<String> simbolosTransicoes = getSimbolosTrasicoes();
+        simbolosTransicoes.remove("*");     // tratar transicoes epsilon em outra rotina
         // Adiciona transicoes para vazio. Vazio com qualquer coisa vai para o vazio
         for (int z = 0; z < simbolosTransicoes.size(); z++) {
             AFD.setTransicao("", "", simbolosTransicoes.get(z));
@@ -137,9 +143,9 @@ public class AFNParaAFD {
                                 destino += "";
                                 simbolo = t.get(x).getSimbolo();
                             }
-                            if (!destino.contains(t.get(x).getDestino().getID())) { // verifica se ja existe a transicao 
-                                origem = t.get(x).getOrigem().getID();
+                            if (!destino.contains(t.get(x).getDestino().getID())) {
                                 destino += t.get(x).getDestino().getID();
+                                origem = estadoCorrente;
                                 simbolo = t.get(x).getSimbolo();
                             }
                         }
@@ -167,9 +173,9 @@ public class AFNParaAFD {
                         ArrayList<Transicao> t = AFN.getTransicao(listaEstadosAFD.get(i), simbolosTransicoes.get(j));
                         String origem = "", destino = "", simbolo = "";
                         for (int x = 0; x < t.size(); x++) {    // getTransicao pode retornar uma lista de trans
-                            if (!destino.contains(t.get(x).getDestino().getID())) { // verifica se ja es
-                                origem = t.get(x).getOrigem().getID();
+                            if (!destino.contains(t.get(x).getDestino().getID())) {
                                 destino += t.get(x).getDestino().getID();
+                                origem = t.get(x).getOrigem().getID();
                                 simbolo = t.get(x).getSimbolo();
                             }
                         }
@@ -199,24 +205,110 @@ public class AFNParaAFD {
             }
         }
         timeFinal = System.currentTimeMillis();
-        System.out.println("Tempo de execução setTransicao:" + (timeFinal - timeInicial)/1000 + " s");
+        System.out.println("Tempo de execução setTransicao:" + (timeFinal - timeInicial) + " ms");
     }
 
-    private void simplificaTransicoes() {
-        Iterator<Transicao> it = AFD.getTransicoes().iterator();
-        ArrayList<String> simbolos = getSimbolosTrasicoes();
-        ArrayList<Transicao> elementoARemover = new ArrayList<>();
+    /**
+     * Rotina que retira estados inacessíveis do AFD.
+     */
+    private void simplificaAFD() {
+        HashMap<String, Estado> map = new HashMap<>();
+        map.putAll(AFD.getEstados());   // cria uma copia pra naum da excecao de modificacao em tempo real
+        Iterator<Entry<String, Estado>> it = map.entrySet().iterator();
         while (it.hasNext()) {
-            Transicao t = it.next();
-            if (simbolos.contains("*")) {       // se o automato tem transicao epsilon que da pro limbo
-                if (t.getSimbolo().equals("*")  // se tiver como simbolo * e for pro limbo, tchauzin
-                        && t.getDestino().getID().equals("")) {
-                    elementoARemover.add(t);
-                    it.remove();
+            boolean ok = true;      // deve ser removido ate que prove o contrario
+            Entry estado = it.next();
+            for (int i = 0; i < AFD.getTransicoes().size(); i++) {
+                if (AFD.getTransicoes().get(i).getDestino().getID().equals((String) estado.getKey())) {
+                    // se alguem chega nele, provei o contrario x)
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) {
+                // esse estado pode ser removido
+                AFD.removeEstado((String) estado.getKey());
+                // remove tambem as transicoes dele
+                for (int i = 0; i < getSimbolosTrasicoes().size(); i++) {
+                    ArrayList<Transicao> trans = AFD.getTransicao(
+                            (String) estado.getKey(), getSimbolosTrasicoes().get(i));
+                    for (int j = 0; j < trans.size(); j++) {
+                        AFD.removeTransicao(trans.get(j));
+                    }
                 }
             }
         }
-        AFD.removeTransicao(elementoARemover);
+    }
+
+    /**
+     * Rotina auxiliar que exibe todas as transições do autômato. Somente para
+     * testes.
+     */
+    private void imprimeTransicoesAFD() {
+        System.out.println("");
+        System.out.println("");
+        for (int i = 0; i < AFD.getTransicoes().size(); i++) {
+            System.out.println("Origem: " + AFD.getTransicoes().get(i).getOrigem().getID() + "  "
+                    + "Destino: " + AFD.getTransicoes().get(i).getDestino().getID() + "  "
+                    + "Simbolo: " + AFD.getTransicoes().get(i).getSimbolo());
+        }
+    }
+
+    /**
+     * Seta o estado inicial do AFD.
+     */
+    private void setEstadoInicial() {
+        Estado estadoInicialAFN = AFN.getEstadoInicial();
+        String estadoInicialAFD = estadoInicialAFN.getID();
+        while (!AFN.getTransicao(estadoInicialAFD, "*").isEmpty()) {
+            // Nao coloquei o for porque nao vai ter 2 transicoes epsilons
+            // saindo do mesmo estado
+            estadoInicialAFD += AFN.getTransicao(estadoInicialAFD, "*").get(0).getDestino().getID();
+        }
+        AFD.setEstadoInicial(estadoInicialAFD);
+    }
+
+    /**
+     * Seta estado(s) final(is) do AFD.
+     */
+    private void setEstadoFinal() {
+        HashMap<String, Estado> estadosFinaisAFN = AFN.getEstadosFinais();
+        Iterator<Entry<String, Estado>> it = estadosFinaisAFN.entrySet().iterator();
+        while (it.hasNext()) {
+            String estadoAFN = it.next().getKey();
+            Iterator<Entry<String, Estado>> itAFD =  AFD.getEstados().entrySet().iterator();
+            while(itAFD.hasNext()) {
+                String estadoAFD = itAFD.next().getKey();
+                if(estadoAFD.contains(estadoAFN)){     // se o estado do AFD contem o do AFN, blz
+                    AFD.setEstadoFinal(estadoAFD);
+                }
+            }
+        }
+    }
+
+    /**
+     * Estados que contém transições epsilons serão removidos e substituídos por
+     * um outro estado representado pelo conjunto dele + estados alcaçáveis por
+     * transições epsilon a partir da dele. Ex: (1) -*-> (2) -*-> (5) o estado 1
+     * dará lugar para o estado (125) e o 2 ao (25).
+     */
+    private void tratarTransicoesEpsilons() {
+        for (int i = 0; i < AFN.getTransicoes().size(); i++) {
+            if (AFN.getTransicoes().get(i).getSimbolo().equals("*")) {  // Detectei uma transicao epsilon
+                for (int j = 0; j < AFD.getTransicoes().size(); j++) {   // procurar estados que chegam na sua origem
+                    if (AFD.getTransicoes().get(j).getDestino().getID().equals(
+                            AFN.getTransicoes().get(i).getOrigem().getID())) {  // se alguma transicao do AFD chega nesse cara
+                        // readiciona transicao com novo destino
+                        AFD.setTransicao(AFD.getTransicoes().get(j).getOrigem().getID(),
+                                AFN.getTransicoes().get(i).getOrigem().getID()
+                                + AFN.getTransicoes().get(i).getDestino().getID(),
+                                AFD.getTransicoes().get(j).getSimbolo());
+                        // remove transicao com destino velho
+                        AFD.removeTransicao(AFD.getTransicoes().get(j));
+                    }
+                }
+            }
+        }
     }
 
     /**
