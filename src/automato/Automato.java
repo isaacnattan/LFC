@@ -1,5 +1,6 @@
 package automato;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -7,7 +8,8 @@ import javax.swing.JOptionPane;
 
 public class Automato {
     // Pode haver um conjunto de estados e estados finais
-    private HashMap<Integer, Estado> estados, estadosFinais;
+
+    private HashMap<String, Estado> estados, estadosFinais;
     // Um comjunto de transicoes
     private HashSet<Transicao> transicoes;
     // Mas somente um estado inicial
@@ -19,19 +21,19 @@ public class Automato {
         transicoes = new HashSet<>();
     }
 
-    public void setEstado(int identificador) {
+    public void setEstado(String identificador) {
         estados.put(identificador, new Estado(identificador));
     }
 
-    public void setEstadoFinal(int identificador) {
+    public void setEstadoFinal(String identificador) {
         estadosFinais.put(identificador, new Estado(identificador));
     }
 
-    public void setEstadoInicial(int identificador) {
+    public void setEstadoInicial(String identificador) {
         estadoInicial = new Estado(identificador);
     }
 
-    public void removeEstado(int identificador) {
+    public void removeEstado(String identificador) {
         if (estados.containsKey(identificador)) {
             estados.remove(identificador);
         } else if (estadosFinais.containsKey(identificador)) {
@@ -41,39 +43,46 @@ public class Automato {
                 estadosFinais.remove(identificador);
             }
         } else {
-            if (estadoInicial.getID() == identificador) {
+            if (estadoInicial.getID().equals(identificador)) {
                 if (mensagemDeConfirmacao(
                         "Você está prestes a excluir o estado inicial.")
                         == JOptionPane.YES_OPTION) {
-                    int novoIdentificador = Integer.parseInt(javax.swing.JOptionPane.showInputDialog(null,
+                    String novoIdentificador = javax.swing.JOptionPane.showInputDialog(null,
                             "Você deve escolher outro estado inicial."
-                            + "\nInsira um identificador válido: "));
+                            + "\nInsira um identificador válido: ");
                     setEstadoInicial(novoIdentificador);
                 }
             }
         }
     }
 
-    public Transicao getTransicao(int origem, String simbolo) {
+    /**
+     *
+     * @param origem
+     * @param simbolo
+     * @return
+     */
+    public ArrayList<Transicao> getTransicao(String origem, String simbolo) {
         Iterator<Transicao> it = transicoes.iterator();
+        ArrayList<Transicao> transicao = new ArrayList<>();
         while (it.hasNext()) {
             Transicao trans = it.next();
-            if (trans.getOrigem().getID() == origem 
+            if (trans.getOrigem().getID().equals(origem)
                     && trans.getSimbolo().equals(simbolo)) {
-                return trans;
+                transicao.add(trans);
             }
         }
-        return null;
+        return transicao;
     }
 
-    public boolean ehEstadoFinal(int idEstado) {
+    public boolean ehEstadoFinal(String idEstado) {
         if (estadosFinais.containsKey(idEstado)) {
             return true;
         }
         return false;
     }
 
-    public void setTransicao(int idEstadoInicial, int idEstadoFinal, String simbolo) {
+    public void setTransicao(String idEstadoInicial, String idEstadoFinal, String simbolo) {
         if (estados.containsKey(idEstadoInicial) && estados.containsKey(idEstadoFinal)) {
             // Deve adicionar a transicao se os estados referenciados existirem
             transicoes.add(new Transicao(idEstadoInicial, idEstadoFinal, simbolo));
@@ -82,7 +91,17 @@ public class Automato {
         }
     }
 
-    public void removeTransicao() {
+    public void removeTransicao(ArrayList<Transicao> t) {
+        /*Iterator<Transicao> it = transicoes.iterator();
+        while (it.hasNext()) {
+            Transicao t1 = it.next();
+            if (t.getOrigem().equals(t1.getOrigem())
+                    && t.getSimbolo().equals(t1.getSimbolo())
+                    && t.getDestino().equals(t1.getDestino())) {
+                it.remove();
+            }
+        }*/
+        transicoes.removeAll(t);
     }
 
     // metodos auxiliares
@@ -96,13 +115,13 @@ public class Automato {
                 options, options[0]);
         return i;
     }
-    
+
     // getters dos atributos
-    public HashMap<Integer, Estado> getEstados() {
+    public HashMap<String, Estado> getEstados() {
         return estados;
     }
 
-    public HashMap<Integer, Estado> getEstadosFinais() {
+    public HashMap<String, Estado> getEstadosFinais() {
         return estadosFinais;
     }
 
@@ -112,27 +131,5 @@ public class Automato {
 
     public Estado getEstadoInicial() {
         return estadoInicial;
-    }
-    
-    // testes
-    public static void main(String[] args) {
-        Automato meuAutomato = new Automato();
-        String cadeia = "abababb";
-        Transicao trans;
-        int origem = 0;
-        Estado destino;
-        //criação os estados
-        meuAutomato.setEstado(0);
-        meuAutomato.setEstado(1);
-        //definição do estado Inicial
-        meuAutomato.setEstadoInicial(0);
-        //definição do estado Final
-        meuAutomato.setEstadoFinal(0);
-        //criação das Transições
-        meuAutomato.setTransicao(0, 0, "a");
-        meuAutomato.setTransicao(0, 1, "b");
-        meuAutomato.setTransicao(1, 1, "a");
-        meuAutomato.setTransicao(1, 0, "b");
-        meuAutomato.getTransicao(0, "a");
     }
 }

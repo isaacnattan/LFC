@@ -2,12 +2,12 @@ package automato;
 
 public class Estado {
 
-    private int identificador;
+    private String identificador;
     //private Point coordenadas;
-    private String nome;
+    //private String nome;
     //private String rotulo;
 
-    public Estado(int identificador) {
+    public Estado(String identificador) {
         this.identificador = identificador;
         //this.coordenadas = coordenadas;
     }
@@ -20,19 +20,19 @@ public class Estado {
         return coordenadas;
     }*/
 
-    public void setID(int identificador) {
+    public void setID(String identificador) {
     }
 
-    public int getID() {
+    public String getID() {
         return identificador;
     }
 
-    public void setNome(String nome) {
+    /*public void setNome(String nome) {
     }
 
     public String getNome() {
         return nome;
-    }
+    }*/
 
     /*public void setRotulo(String rotulo) {
     }

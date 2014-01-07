@@ -10,20 +10,20 @@ public class ExemploAFD {
         Automato meuAutomato = new Automato();
         String cadeia = "abababaabaa";
         Transicao trans;
-        int origem = 0;
+        String origem = "0";
         Estado destino;
         //criação os estados
-        meuAutomato.setEstado(0);
-        meuAutomato.setEstado(1);
+        meuAutomato.setEstado("0");
+        meuAutomato.setEstado("1");
         //definição do estado Inicial
-        meuAutomato.setEstadoInicial(0);
+        meuAutomato.setEstadoInicial("0");
         //definição do estado Final
-        meuAutomato.setEstadoFinal(0);
+        meuAutomato.setEstadoFinal("0");
         //criação das Transições
-        meuAutomato.setTransicao(0, 0, "a");
-        meuAutomato.setTransicao(0, 1, "b");
-        meuAutomato.setTransicao(1, 1, "a");
-        meuAutomato.setTransicao(1, 0, "b");
+        meuAutomato.setTransicao("0", "0", "a");
+        meuAutomato.setTransicao("0", "1", "b");
+        meuAutomato.setTransicao("1", "1", "a");
+        meuAutomato.setTransicao("1", "0", "b");
         int i = 0;
         System.out.println("\nAFD reconhecedor"
                 + " de palavras com número par de b's");
@@ -33,7 +33,7 @@ public class ExemploAFD {
             // O método getTransicao retorna
             // a transição que tem como origem e
             // símbolo os parametros passados.
-            trans = meuAutomato.getTransicao(origem, "" + cadeia.charAt(i));
+            trans = meuAutomato.getTransicao(origem, "" + cadeia.charAt(i)).get(0);
             // O método getEstadoDestino
             // retorna o Estado de Destino da
             // transição trans.
