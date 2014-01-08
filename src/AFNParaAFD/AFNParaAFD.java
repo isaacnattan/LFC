@@ -23,15 +23,22 @@ public class AFNParaAFD {
     private long timeInicial;
     private long timeFinal;
 
+    // para testes
+    public AFNParaAFD() {
+    }
+
     public AFNParaAFD(Automato afn) {
         this.AFN = afn;
         AFD = new Automato();
         setEstadosAFD();
         setTransicoes();
+        System.out.println("\nFunção Primitiva");
         imprimeTransicoesAFD();
         tratarTransicoesEpsilons();
+        System.out.println("\nFunção com épsilon");
         imprimeTransicoesAFD();
         simplificaAFD();
+        System.out.println("\nFunção Simplificada");
         imprimeTransicoesAFD();
         setEstadoInicial();
         setEstadoFinal();
@@ -160,8 +167,11 @@ public class AFNParaAFD {
                                     if (!estado.contains(destino.substring(f, f + 1))) {
                                         break;
                                     }
+                                    if (f == estado.length() - 1) {
+                                        destino = estado;
+                                        break;
+                                    }
                                 }
-                                destino = listaEstadosAFD.get(g);
                             }
                         }
                     }
@@ -194,8 +204,11 @@ public class AFNParaAFD {
                                         if (!estado.contains(destino.substring(f, f + 1))) {
                                             break;
                                         }
+                                        if (f == estado.length() - 1) {
+                                            destino = estado;
+                                            break;
+                                        }
                                     }
-                                    destino = listaEstadosAFD.get(g);
                                 }
                             }
                         }
@@ -246,7 +259,6 @@ public class AFNParaAFD {
      */
     private void imprimeTransicoesAFD() {
         System.out.println("");
-        System.out.println("");
         for (int i = 0; i < AFD.getTransicoes().size(); i++) {
             System.out.println("Origem: " + AFD.getTransicoes().get(i).getOrigem().getID() + "  "
                     + "Destino: " + AFD.getTransicoes().get(i).getDestino().getID() + "  "
@@ -276,10 +288,10 @@ public class AFNParaAFD {
         Iterator<Entry<String, Estado>> it = estadosFinaisAFN.entrySet().iterator();
         while (it.hasNext()) {
             String estadoAFN = it.next().getKey();
-            Iterator<Entry<String, Estado>> itAFD =  AFD.getEstados().entrySet().iterator();
-            while(itAFD.hasNext()) {
+            Iterator<Entry<String, Estado>> itAFD = AFD.getEstados().entrySet().iterator();
+            while (itAFD.hasNext()) {
                 String estadoAFD = itAFD.next().getKey();
-                if(estadoAFD.contains(estadoAFN)){     // se o estado do AFD contem o do AFN, blz
+                if (estadoAFD.contains(estadoAFN)) {     // se o estado do AFD contem o do AFN, blz
                     AFD.setEstadoFinal(estadoAFD);
                 }
             }
@@ -296,19 +308,58 @@ public class AFNParaAFD {
         for (int i = 0; i < AFN.getTransicoes().size(); i++) {
             if (AFN.getTransicoes().get(i).getSimbolo().equals("*")) {  // Detectei uma transicao epsilon
                 for (int j = 0; j < AFD.getTransicoes().size(); j++) {   // procurar estados que chegam na sua origem
-                    if (AFD.getTransicoes().get(j).getDestino().getID().equals(
-                            AFN.getTransicoes().get(i).getOrigem().getID())) {  // se alguma transicao do AFD chega nesse cara
-                        // readiciona transicao com novo destino
-                        AFD.setTransicao(AFD.getTransicoes().get(j).getOrigem().getID(),
-                                AFN.getTransicoes().get(i).getOrigem().getID()
-                                + AFN.getTransicoes().get(i).getDestino().getID(),
-                                AFD.getTransicoes().get(j).getSimbolo());
-                        // remove transicao com destino velho
-                        AFD.removeTransicao(AFD.getTransicoes().get(j));
+                    if (AFD.getTransicoes().get(j).getDestino().getID().contains(
+                            AFN.getTransicoes().get(i).getOrigem().getID())
+                            && AFD.getTransicoes().get(j).getDestino().getID().length() <= 3) {
+                        // se alguma transicao do AFD contem esse cara substitui a ocorrencia
+                        // do elemento no estado pelo conjunto de estados.
+                        String estadoEpsilon = AFD.getTransicoes().get(j).getDestino().getID();
+                        for (int d = 0; d < estadoEpsilon.length(); d++) {
+                            if (estadoEpsilon.substring(d, d + 1).equals(
+                                    AFN.getTransicoes().get(i).getOrigem().getID())) {
+                                // encontra a ocorrencia dentro do identificador do estado e substitui
+                                // pelo conjunto de estados
+                                estadoEpsilon = estadoEpsilon.replace(
+                                        estadoEpsilon.substring(d, d + 1),
+                                        AFN.getTransicoes().get(i).getOrigem().getID()
+                                        + AFN.getTransicoes().get(i).getDestino().getID());
+                            }
+                            if (d == estadoEpsilon.length() - 1) {
+                                // readiciona transicao com novo destino
+                                AFD.setTransicao(AFD.getTransicoes().get(j).getOrigem().getID(),
+                                        eliminaElementosIguais(estadoEpsilon),
+                                        AFD.getTransicoes().get(j).getSimbolo());
+                                // remove transicao com destino velho
+                                AFD.removeTransicao(AFD.getTransicoes().get(j));
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Remove somente caracteres adjacentes.
+     *
+     * @param subconjunto
+     */
+    private String eliminaElementosIguais(String subconjunto) {
+        ArrayList<Character> lista = new ArrayList<>();
+        for (int i = 0; i < subconjunto.length(); i++) {
+            lista.add(subconjunto.substring(i, i + 1).toCharArray()[0]);
+        }
+        Collections.sort(lista);
+        subconjunto = "";
+        for (int j = 0; j < lista.size(); j++) {
+            subconjunto += lista.toArray()[j];
+        }
+        return subconjunto.replaceAll("(([A-Za-z0-9])(\\2)+)", "$2");
+    }
+
+    public static void main(String[] args) {
+        AFNParaAFD c = new AFNParaAFD();
+        c.eliminaElementosIguais("1323");
     }
 
     /**
@@ -348,3 +399,15 @@ public class AFNParaAFD {
         return AFD;
     }
 }
+
+/*
+ * Observações Importantes:
+ * - o estado que for adicionado com a transição epsilon deve acrescer um outro 
+ * estado se contiver uma transição para o símbolo dado ?
+ * Ex: 1 -a-> 1
+ *     1 -b-> 1,2
+ *     2 -*-> 3
+ *     3 -b-> 4
+ * 
+ *     1 -b-> 1,2,3,4 ?? ou 1,2,3 ??
+ */
