@@ -40,6 +40,9 @@ public class AFNParaAFD {
         simplificaAFD();
         System.out.println("\nFunção Simplificada");
         imprimeTransicoesAFD();
+        removeTransicoesVazias();
+        System.out.println("\nRemove transições vazias");
+        imprimeTransicoesAFD();
         setEstadoInicial();
         setEstadoFinal();
     }
@@ -84,7 +87,7 @@ public class AFNParaAFD {
         // Adiciona o conjunto vazio e bye bye xD
         AFD.setEstado("");
         timeFinal = System.currentTimeMillis();
-        System.out.println("Tempo de execução setEstadosAFD:" + (timeFinal - timeInicial) + " ms");
+        System.out.println("\nTempo de execução setEstadosAFD:" + (timeFinal - timeInicial) + " ms");
     }
 
     /**
@@ -218,13 +221,14 @@ public class AFNParaAFD {
             }
         }
         timeFinal = System.currentTimeMillis();
-        System.out.println("Tempo de execução setTransicao:" + (timeFinal - timeInicial) + " ms");
+        System.out.println("\nTempo de execução setTransicao:" + (timeFinal - timeInicial) + " ms");
     }
 
     /**
      * Rotina que retira estados inacessíveis do AFD.
      */
     private void simplificaAFD() {
+        timeInicial = System.currentTimeMillis();
         HashMap<String, Estado> map = new HashMap<>();
         map.putAll(AFD.getEstados());   // cria uma copia pra naum da excecao de modificacao em tempo real
         Iterator<Entry<String, Estado>> it = map.entrySet().iterator();
@@ -251,6 +255,16 @@ public class AFNParaAFD {
                 }
             }
         }
+        timeFinal = System.currentTimeMillis();
+        System.out.println("\nTempo de execução simplificaAFD:" + (timeFinal - timeInicial) + " ms");
+    }
+
+    private void removeTransicoesVazias() {
+        for (int i = 0; i < AFD.getTransicoes().size(); i++) {
+            if (AFD.getTransicoes().get(i).getSimbolo().equals("")) {
+                AFD.removeTransicao(AFD.getTransicoes().get(i));
+            }
+        }
     }
 
     /**
@@ -260,7 +274,8 @@ public class AFNParaAFD {
     private void imprimeTransicoesAFD() {
         System.out.println("");
         for (int i = 0; i < AFD.getTransicoes().size(); i++) {
-            System.out.println("Origem: " + AFD.getTransicoes().get(i).getOrigem().getID() + "  "
+            System.out.println("[" + i + "]" + "Origem: "
+                    + AFD.getTransicoes().get(i).getOrigem().getID() + "  "
                     + "Destino: " + AFD.getTransicoes().get(i).getDestino().getID() + "  "
                     + "Simbolo: " + AFD.getTransicoes().get(i).getSimbolo());
         }
@@ -270,6 +285,7 @@ public class AFNParaAFD {
      * Seta o estado inicial do AFD.
      */
     private void setEstadoInicial() {
+        timeInicial = System.currentTimeMillis();
         Estado estadoInicialAFN = AFN.getEstadoInicial();
         String estadoInicialAFD = estadoInicialAFN.getID();
         while (!AFN.getTransicao(estadoInicialAFD, "*").isEmpty()) {
@@ -278,12 +294,15 @@ public class AFNParaAFD {
             estadoInicialAFD += AFN.getTransicao(estadoInicialAFD, "*").get(0).getDestino().getID();
         }
         AFD.setEstadoInicial(estadoInicialAFD);
+        timeFinal = System.currentTimeMillis();
+        System.out.println("\nTempo de execução setEstadoInicial:" + (timeFinal - timeInicial) + " ms");
     }
 
     /**
      * Seta estado(s) final(is) do AFD.
      */
     private void setEstadoFinal() {
+        timeInicial = System.currentTimeMillis();
         HashMap<String, Estado> estadosFinaisAFN = AFN.getEstadosFinais();
         Iterator<Entry<String, Estado>> it = estadosFinaisAFN.entrySet().iterator();
         while (it.hasNext()) {
@@ -296,15 +315,18 @@ public class AFNParaAFD {
                 }
             }
         }
+        timeFinal = System.currentTimeMillis();
+        System.out.println("\nTempo de execução setEstadoFinal:" + (timeFinal - timeInicial) + " ms");
     }
 
     /**
      * Estados que contém transições epsilons serão removidos e substituídos por
      * um outro estado representado pelo conjunto dele + estados alcaçáveis por
      * transições epsilon a partir da dele. Ex: (1) -*-> (2) -*-> (5) o estado 1
-     * dará lugar para o estado (125) e o 2 ao (25).
+     * dará lugar para o estado (125).
      */
     private void tratarTransicoesEpsilons() {
+        timeInicial = System.currentTimeMillis();
         for (int i = 0; i < AFN.getTransicoes().size(); i++) {
             if (AFN.getTransicoes().get(i).getSimbolo().equals("*")) {  // Detectei uma transicao epsilon
                 for (int j = 0; j < AFD.getTransicoes().size(); j++) {   // procurar estados que chegam na sua origem
@@ -325,9 +347,13 @@ public class AFNParaAFD {
                                         + AFN.getTransicoes().get(i).getDestino().getID());
                             }
                             if (d == estadoEpsilon.length() - 1) {
+                                // verifica novos estado alcancaveis pelos estados adicionados
+                                // por transicoes epsilons. Ex: (1) -b-> (2) -*-> (3) -b-> (4)
+                                // com b (1) -> (234)
                                 // readiciona transicao com novo destino
                                 AFD.setTransicao(AFD.getTransicoes().get(j).getOrigem().getID(),
-                                        eliminaElementosIguais(estadoEpsilon),
+                                        adicionaNovosEstadosAlcancaveis(estadoEpsilon, 
+                                        AFD.getTransicoes().get(j).getSimbolo()),
                                         AFD.getTransicoes().get(j).getSimbolo());
                                 // remove transicao com destino velho
                                 AFD.removeTransicao(AFD.getTransicoes().get(j));
@@ -337,6 +363,19 @@ public class AFNParaAFD {
                 }
             }
         }
+        timeFinal = System.currentTimeMillis();
+        System.out.println("\nTempo de execução tratarTransicoesEpsilons:" + (timeFinal - timeInicial) + " ms");
+    }
+
+    private String adicionaNovosEstadosAlcancaveis(String estado, String simbolo) {
+        String novoDestino = "";
+        for (int i=0; i<estado.length(); i++) {
+            ArrayList<Transicao> transicoes = AFD.getTransicao(estado.substring(i, i+1), simbolo);
+            for(int j=0; j<transicoes.size(); j++){
+                novoDestino += transicoes.get(j).getDestino().getID();
+            }
+        }
+        return eliminaElementosIguais(novoDestino+estado);
     }
 
     /**
@@ -355,11 +394,6 @@ public class AFNParaAFD {
             subconjunto += lista.toArray()[j];
         }
         return subconjunto.replaceAll("(([A-Za-z0-9])(\\2)+)", "$2");
-    }
-
-    public static void main(String[] args) {
-        AFNParaAFD c = new AFNParaAFD();
-        c.eliminaElementosIguais("1323");
     }
 
     /**
@@ -398,10 +432,16 @@ public class AFNParaAFD {
     public Automato getAFD() {
         return AFD;
     }
+
+    // realizar testes
+    public static void main(String[] args) {
+        AFNParaAFD c = new AFNParaAFD();
+        c.eliminaElementosIguais("1323");
+    }
 }
 
 /*
- * Observações Importantes:
+ * Observações Importantes:     [dúvida]
  * - o estado que for adicionado com a transição epsilon deve acrescer um outro 
  * estado se contiver uma transição para o símbolo dado ?
  * Ex: 1 -a-> 1

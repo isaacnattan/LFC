@@ -43,7 +43,7 @@ public class Automato {
      *
      * @param origem
      * @param simbolo
-     * @return
+     * @return {@link ArrayList<Transicao>}
      */
     public ArrayList<Transicao> getTransicao(String origem, String simbolo) {
         Iterator<Transicao> it = transicoes.iterator();
