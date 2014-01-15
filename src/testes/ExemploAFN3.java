@@ -1,13 +1,15 @@
 package testes;
 
-import AFNParaAFD.AFNParaAFD;
+import conversoes.ConversaoAFNParaAFD;
 import automato.Automato;
+import reconhecedorCadeias.ReconhecedorCadeia;
 
 /**
  * @author Isaac_Nattan
  */
 public class ExemploAFN3 {
     // automato equivalente a expressao regular (abUa)*
+
     public static void main(String[] args) {
         Automato AFN = new Automato();
         // cria estados
@@ -30,11 +32,13 @@ public class ExemploAFN3 {
         AFN.setTransicao("2", "5", "*");
         AFN.setTransicao("2", "3", "*");
         AFN.setTransicao("3", "4", "a");
+        AFN.setTransicao("4", "2", "*");
         AFN.setTransicao("5", "6", "a");
         AFN.setTransicao("6", "7", "*");
         AFN.setTransicao("7", "8", "b");
+        AFN.setTransicao("8", "2", "*");
         // testar conversao ExemploAFN para AFD
-        AFNParaAFD conversao = new AFNParaAFD(AFN);
-        Automato AFD = conversao.getAFD();
+        ConversaoAFNParaAFD conversao = new ConversaoAFNParaAFD(AFN);
+        new ReconhecedorCadeia(conversao.getAFD(), "b");
     }
 }

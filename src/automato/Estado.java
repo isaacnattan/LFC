@@ -1,24 +1,14 @@
 package automato;
 
+import java.util.Objects;
+
 public class Estado {
 
     private String identificador;
-    //private Point coordenadas;
-    //private String nome;
-    //private String rotulo;
 
     public Estado(String identificador) {
         this.identificador = identificador;
-        //this.coordenadas = coordenadas;
     }
-
-    // getters e setters de todos os campos
-    /*public void setPonto(Point ponto) {
-    }
-
-    public Point getPonto() {
-        return coordenadas;
-    }*/
 
     public void setID(String identificador) {
     }
@@ -27,17 +17,25 @@ public class Estado {
         return identificador;
     }
 
-    /*public void setNome(String nome) {
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.identificador);
+        return hash;
     }
 
-    public String getNome() {
-        return nome;
-    }*/
-
-    /*public void setRotulo(String rotulo) {
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Estado other = (Estado) obj;
+        if (!Objects.equals(this.identificador, other.identificador)) {
+            return false;
+        }
+        return true;
     }
-
-    public String getRotulo() {
-        return rotulo;
-    }*/
 }

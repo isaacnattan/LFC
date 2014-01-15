@@ -1,7 +1,8 @@
 package testes;
 
-import AFNParaAFD.AFNParaAFD;
+import conversoes.ConversaoAFNParaAFD;
 import automato.Automato;
+import reconhecedorCadeias.ReconhecedorCadeia;
 
 /**
  * @author Isaac_Nattan
@@ -26,7 +27,7 @@ public class ExemploAFN {
         AFN.setTransicao("2", "3", "b");
         AFN.setTransicao("3", "1", "a");
         // testar conversao ExemploAFN para AFD
-        AFNParaAFD conversao = new AFNParaAFD(AFN);
-        Automato AFD = conversao.getAFD();
+        ConversaoAFNParaAFD conversao = new ConversaoAFNParaAFD(AFN);
+        new ReconhecedorCadeia(conversao.getAFD(), "abbabba");
     }
 }

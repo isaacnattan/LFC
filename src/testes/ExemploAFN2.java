@@ -1,6 +1,6 @@
 package testes;
 
-import AFNParaAFD.AFNParaAFD;
+import conversoes.ConversaoAFNParaAFD;
 import automato.Automato;
 
 /**
@@ -28,8 +28,6 @@ public class ExemploAFN2 {
         AFN.setTransicao("3", "4", "b");
         AFN.setTransicao("4", "4", "a");
         AFN.setTransicao("4", "4", "b");
-        // testar conversao ExemploAFN para AFD
-        AFNParaAFD conversao = new AFNParaAFD(AFN);
-        Automato AFD = conversao.getAFD();
+        ConversaoAFNParaAFD conversao = new ConversaoAFNParaAFD(AFN);
     }
 }
