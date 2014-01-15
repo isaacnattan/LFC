@@ -24,7 +24,7 @@ public class ConversaoERParaAFN {
         lerER();
     }
 
-    private Automato uniao(Automato autEsq, Automato autDir) {
+    public Automato uniao(Automato autEsq, Automato autDir) {
         Automato autTemp = new Automato();
         ArrayList<String> simbolos = autEsq.getSimbolosTrasicoes();
         simbolos.addAll(autDir.getSimbolosTrasicoes());
@@ -84,7 +84,7 @@ public class ConversaoERParaAFN {
         return autTemp;
     }
 
-    private Automato concatenacao(Automato autEsq, Automato autDir) {
+    public Automato concatenacao(Automato autEsq, Automato autDir) {
         Automato autTemp = new Automato();
         // Adiciona estados dos afn da esquerda
         Iterator<Entry<String, Estado>> iteratorEstadosEsq =
@@ -142,7 +142,7 @@ public class ConversaoERParaAFN {
         return autTemp;
     }
 
-    private Automato fechoKleene(Automato aut) {
+    public Automato fechoKleene(Automato aut) {
         Automato autTemp = new Automato();
         // Adiciona estados do afn de entrada
         Iterator<Entry<String, Estado>> iteratorEstadosEsq =
@@ -190,13 +190,13 @@ public class ConversaoERParaAFN {
         return autTemp;
     }
 
-    private Automato epsilon(Automato aut) {
+    public Automato epsilon(Automato aut) {
         // seta estado inicial do afn como final
         aut.setEstadoFinal(aut.getEstadoInicial().getID());
         return aut;
     }
 
-    private Automato linguagemVazia() {
+    public Automato linguagemVazia() {
         Automato aut = new Automato();
         String estado = getNextSimbol();
         aut.setEstado(estado);
@@ -205,7 +205,7 @@ public class ConversaoERParaAFN {
         return aut;
     }
 
-    private Automato a(String caracter) {
+    public Automato a(String caracter) {
         Automato autTemp = new Automato();
         String idEstadoInicial = getNextSimbol();
         String idEstadoFinal = getNextSimbol();
@@ -249,18 +249,5 @@ public class ConversaoERParaAFN {
 
             }
         }
-    }
-
-    public static void main(String[] args) {
-        ConversaoERParaAFN er = new ConversaoERParaAFN("(a.b+a)*");
-        // (a.b+a)*
-        Automato autA = er.a("a");
-        Automato autB = er.a("b");
-        Automato autConc = er.concatenacao(autA, autB);
-        Automato autA2 = er.a("a");
-        Automato autUniao = er.uniao(autConc, autA2);
-        Automato autFinal = er.fechoKleene(autUniao);
-        ConversaoAFNParaAFD conversao = new ConversaoAFNParaAFD(autFinal);
-        new ReconhecedorCadeia(conversao.getAFD(), "b");
     }
 }
