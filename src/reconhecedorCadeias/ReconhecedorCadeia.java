@@ -24,6 +24,12 @@ public final class ReconhecedorCadeia {
     private boolean processaCadeia() {
         ArrayList<Transicao> transicaoSeguinte;
         String estadoAtual = automato.getEstadoInicial().getID();
+        if(cadeia.equals("")){      // verifica se a cadeia vazia eh aceita
+            if(automato.getEstadosFinais().containsKey(automato.getEstadoInicial().getID())){
+                // se o estado inicial eh tambem final, aceita a cadeia vazia
+                return true;
+            }
+        }
         for(int i=0; i<cadeia.length(); i++){
              transicaoSeguinte = automato.getTransicao(new ChaveComposta(
                     estadoAtual, cadeia.substring(i, i+1)));

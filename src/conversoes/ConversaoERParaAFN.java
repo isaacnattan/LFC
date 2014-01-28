@@ -3,11 +3,13 @@ package conversoes;
 import automato.Automato;
 import automato.Estado;
 import automato.Transicao;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
-import reconhecedorCadeias.ReconhecedorCadeia;
 import util.ChaveComposta;
 
 /**
@@ -19,9 +21,10 @@ public class ConversaoERParaAFN {
     private Automato AFN;
     private ArrayList andamentoTransformacao;
 
-    public ConversaoERParaAFN(String ER) {
-        this.ER = ER;
-        lerER();
+    public ConversaoERParaAFN(String pathEntrada) {
+        andamentoTransformacao = new ArrayList();
+        ER = processaEntrada(pathEntrada).get(0);
+        lerER();     // passa somente a primeira posicao do arraylist, a ER
     }
 
     public Automato uniao(Automato autEsq, Automato autDir) {
@@ -218,7 +221,7 @@ public class ConversaoERParaAFN {
     }
 
     /**
-     * Retorna um inteiro randomico para rotular o estado
+     * Retorna uma string com um inteiro randomico para rotular o estado
      *
      * @param simboloInicial
      * @return
@@ -227,10 +230,35 @@ public class ConversaoERParaAFN {
         return String.valueOf(new Random().nextInt());
     }
 
+    private ArrayList<String> processaEntrada(String arquivoEntrada) {
+        File input = new File(arquivoEntrada);
+        ArrayList<String> erCadeias = new ArrayList<>();
+        try {
+            if (input.exists()) {
+                FileReader fr = new FileReader(input);
+                BufferedReader br = new BufferedReader(fr);
+                //equanto houver mais linhas
+                while (br.ready()) {
+                    //lê a proxima linha
+                    String linha = br.readLine();
+                    erCadeias.add(linha);
+                }
+                br.close();
+                fr.close();
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(null, "Arquivo de entrada não encontrado.");
+            }
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(null, "Problemas com a localização do arquivo de entrada. " + ex);
+            return null;
+        }
+        return erCadeias;
+    }
+
     private void lerER() {
         for (int i = 0; i < ER.length(); i++) {
             if (ER.substring(i, i + 1).equals(".")) {
-                if(!andamentoTransformacao.isEmpty()){
+                if (!andamentoTransformacao.isEmpty()) {
                     andamentoTransformacao.add(".");
                 }
             } else if (ER.substring(i, i + 1).equals("+")) {

@@ -46,22 +46,29 @@ public class ConversaoAFNParaAFD {
         String simboloCorrente = "a";
         Iterator<Entry<String, Estado>> iteratorEstados = afn.getEstados().
                 entrySet().iterator();
-        ArrayList<String> simbolos = afn.getSimbolosTrasicoes();
+        //ArrayList<String> simbolos = afn.getSimbolosTrasicoes();
         // Adiciona mesmos estados e transicoes com rotulos diferentes
         while (iteratorEstados.hasNext()) {
             String estado = iteratorEstados.next().getKey();
-            if (afn.getEstadoInicial().getID().equals(estado)) {
-                simboloCorrente = getNextSimbolo(simboloCorrente);
-                afnAux.setEstadoInicial(simboloCorrente);
-                afnAux.setEstado(simboloCorrente);
-                mapeamenteEstados.put(estado, simboloCorrente);
-            } else if (afn.getEstadosFinais().containsKey(estado)) {
+            if (afn.getEstadoInicial().getID().equals(estado) // se eh estado inicial e final ao mesmo tempo
+                    && afn.getEstadosFinais().containsKey(estado)) {
                 simboloCorrente = getNextSimbolo(simboloCorrente);
                 afnAux.setEstadoInicial(simboloCorrente);
                 afnAux.setEstadoFinal(simboloCorrente);
                 afnAux.setEstado(simboloCorrente);
                 mapeamenteEstados.put(estado, simboloCorrente);
-            } else {
+            } else if (afn.getEstadoInicial().getID().equals(estado)) {     // se eh somente estado inicial
+                simboloCorrente = getNextSimbolo(simboloCorrente);
+                afnAux.setEstadoInicial(simboloCorrente);
+                afnAux.setEstado(simboloCorrente);
+                mapeamenteEstados.put(estado, simboloCorrente);
+            } else if (afn.getEstadosFinais().containsKey(estado)) {        // se eh somente estado final
+                simboloCorrente = getNextSimbolo(simboloCorrente);
+                afnAux.setEstadoInicial(simboloCorrente);
+                afnAux.setEstadoFinal(simboloCorrente);
+                afnAux.setEstado(simboloCorrente);
+                mapeamenteEstados.put(estado, simboloCorrente);
+            } else {                                                    // se eh somente um estado intermediario
                 simboloCorrente = getNextSimbolo(simboloCorrente);
                 afnAux.setEstado(simboloCorrente);
                 mapeamenteEstados.put(estado, simboloCorrente);
@@ -70,21 +77,22 @@ public class ConversaoAFNParaAFD {
         // verificar as transicoes de cada estado
         Iterator<Entry<ChaveComposta, ArrayList<Transicao>>> iteratorTransicoes =
                 afn.getTransicoes().entrySet().iterator();
-        while (iteratorTransicoes.hasNext()) {
+        while (iteratorTransicoes.hasNext()) {      // itera sobre as transicoes 
             ArrayList<Transicao> trans = iteratorTransicoes.next().getValue();
-            for(int i=0; i<trans.size(); i++){
-                afnAux.setTransicao(mapeamenteEstados.get(trans.get(i).getOrigem().getID()), 
+            for (int i = 0; i < trans.size(); i++) {      // verifica o caso de haver mais de uma transicao a partir do mesmo estado
+                afnAux.setTransicao(mapeamenteEstados.get(trans.get(i).getOrigem().getID()),
                         mapeamenteEstados.get(trans.get(i).getDestino().getID()), trans.get(i).getSimbolo());
             }
         }
         return afnAux;
     }
-    
+
     /**
-     * Metodo auxiliar que retorna o caracter seguinte do simboloInicial.
-     * Ex.: entrada: "a", saida: "b"
+     * Metodo auxiliar que retorna o caracter seguinte do simboloInicial. Ex.:
+     * entrada: "a", saida: "b"
+     *
      * @param simboloInicial
-     * @return 
+     * @return
      */
     private String getNextSimbolo(String simboloInicial) {
         String inicial = simboloInicial;
@@ -205,7 +213,7 @@ public class ConversaoAFNParaAFD {
         Estado estadoInicialAFN = AFN.getEstadoInicial();
         return calculaFecho(estadoInicialAFN.getID());
     }
-
+    
     private HashMap<String, Estado> getEstadosFinais() {
         HashMap<String, Estado> estadosFinaisAFN = AFN.getEstadosFinais();
         HashMap<String, Estado> estadosFinaisAFD = new HashMap<>();
@@ -227,12 +235,13 @@ public class ConversaoAFNParaAFD {
         }
         return estadosFinaisAFD;
     }
-    
+
     /**
-     * Metodo auxiliar que dada uma string de entrada, retorna a string
-     * sem caracteres repetidos.
+     * Metodo auxiliar que dada uma string de entrada, retorna a string sem
+     * caracteres repetidos.
+     *
      * @param subconjunto
-     * @return 
+     * @return
      */
     private String eliminaElementosIguais(String subconjunto) {
         ArrayList<Character> lista = new ArrayList<>();

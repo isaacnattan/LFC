@@ -22,6 +22,6 @@ public class ER2 {
         Automato autFinal = er.concatenacao(autConc3, autFech2);
         ConversaoAFNParaAFD conversao = new ConversaoAFNParaAFD(autFinal);
         // adicione a cadeia a ser verificada no segundo parametro
-        new ReconhecedorCadeia(conversao.getAFD(), "b");
+        new ReconhecedorCadeia(conversao.getAFD(), "");
     }
 }
