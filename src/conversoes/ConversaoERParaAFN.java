@@ -17,14 +17,14 @@ import util.ChaveComposta;
  */
 public class ConversaoERParaAFN {
 
-    private final String ER;
+    private final String ER = null;
     private Automato AFN;
     private ArrayList andamentoTransformacao;
 
     public ConversaoERParaAFN(String pathEntrada) {
-        andamentoTransformacao = new ArrayList();
-        ER = processaEntrada(pathEntrada).get(0);
-        lerER();     // passa somente a primeira posicao do arraylist, a ER
+        //andamentoTransformacao = new ArrayList();
+        //ER = processaEntrada(pathEntrada).get(0);
+        //lerER();     // passa somente a primeira posicao do arraylist, a ER
     }
 
     public Automato uniao(Automato autEsq, Automato autDir) {

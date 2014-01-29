@@ -18,6 +18,6 @@ public class ER {
         Automato autFinal = er.fechoKleene(autUniao);
         ConversaoAFNParaAFD conversao = new ConversaoAFNParaAFD(autFinal);
         // adicione a cadeia a ser verificada no segundo parametro
-        new ReconhecedorCadeia(conversao.getAFD(), "aaaa");
+        new ReconhecedorCadeia(conversao.getAFD(), "");
     }
 }

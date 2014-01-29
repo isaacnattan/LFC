@@ -46,30 +46,26 @@ public class ConversaoAFNParaAFD {
         String simboloCorrente = "a";
         Iterator<Entry<String, Estado>> iteratorEstados = afn.getEstados().
                 entrySet().iterator();
-        //ArrayList<String> simbolos = afn.getSimbolosTrasicoes();
-        // Adiciona mesmos estados e transicoes com rotulos diferentes
+        // Adiciona mesmos estados e transicoes com rotulos atomicos
         while (iteratorEstados.hasNext()) {
             String estado = iteratorEstados.next().getKey();
+            simboloCorrente = getNextSimbolo(simboloCorrente);
             if (afn.getEstadoInicial().getID().equals(estado) // se eh estado inicial e final ao mesmo tempo
                     && afn.getEstadosFinais().containsKey(estado)) {
-                simboloCorrente = getNextSimbolo(simboloCorrente);
                 afnAux.setEstadoInicial(simboloCorrente);
                 afnAux.setEstadoFinal(simboloCorrente);
                 afnAux.setEstado(simboloCorrente);
                 mapeamenteEstados.put(estado, simboloCorrente);
             } else if (afn.getEstadoInicial().getID().equals(estado)) {     // se eh somente estado inicial
-                simboloCorrente = getNextSimbolo(simboloCorrente);
                 afnAux.setEstadoInicial(simboloCorrente);
                 afnAux.setEstado(simboloCorrente);
                 mapeamenteEstados.put(estado, simboloCorrente);
             } else if (afn.getEstadosFinais().containsKey(estado)) {        // se eh somente estado final
-                simboloCorrente = getNextSimbolo(simboloCorrente);
-                afnAux.setEstadoInicial(simboloCorrente);
                 afnAux.setEstadoFinal(simboloCorrente);
+                afnAux.setEstado(simboloCorrente);
                 afnAux.setEstado(simboloCorrente);
                 mapeamenteEstados.put(estado, simboloCorrente);
             } else {                                                    // se eh somente um estado intermediario
-                simboloCorrente = getNextSimbolo(simboloCorrente);
                 afnAux.setEstado(simboloCorrente);
                 mapeamenteEstados.put(estado, simboloCorrente);
             }
