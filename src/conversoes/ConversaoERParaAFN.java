@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -17,17 +18,29 @@ import util.ChaveComposta;
  */
 public class ConversaoERParaAFN {
 
-    private final String ER = null;
     private Automato AFN;
-    private ArrayList andamentoTransformacao;
+    private ArrayList expressaoRegular;
+    private ArrayList<String> cadeias = new ArrayList<>();
 
     public ConversaoERParaAFN(String pathEntrada) {
-        //andamentoTransformacao = new ArrayList();
-        //ER = processaEntrada(pathEntrada).get(0);
-        //lerER();     // passa somente a primeira posicao do arraylist, a ER
+        expressaoRegular = leituraInicialER(processaEntrada(pathEntrada).get(0));
+        AFN = resolveER(expressaoRegular);
+    }
+    
+    private Automato resolveER(ArrayList erPreProcessada) {
+        Automato afnFinal;
+        while (erPreProcessada.contains("(")) {                          // enquanto expressao regular contiver parenteses
+            ArrayList erInicial = getERDentroParenteses(erPreProcessada);// obter a expressao dentro do primeiro parenteses que encontrar
+            Automato autParcial = resolveERSemParenteses(erInicial);      // resolve expressao dentro do parenteses
+            erPreProcessada = integraResultadoParenteses(autParcial, erPreProcessada);// integra resultado na expressao inicial
+        }
+        // Nesse ponto todos os parenteses ja devem ter sido resolvidos, logo
+        // resolve a expressao final
+        afnFinal = resolveERSemParenteses(erPreProcessada);
+        return afnFinal;
     }
 
-    public Automato uniao(Automato autEsq, Automato autDir) {
+    private Automato uniao(Automato autEsq, Automato autDir) {
         Automato autTemp = new Automato();
         ArrayList<String> simbolos = autEsq.getSimbolosTrasicoes();
         simbolos.addAll(autDir.getSimbolosTrasicoes());
@@ -87,7 +100,7 @@ public class ConversaoERParaAFN {
         return autTemp;
     }
 
-    public Automato concatenacao(Automato autEsq, Automato autDir) {
+    private Automato concatenacao(Automato autEsq, Automato autDir) {
         Automato autTemp = new Automato();
         // Adiciona estados dos afn da esquerda
         Iterator<Entry<String, Estado>> iteratorEstadosEsq =
@@ -145,7 +158,7 @@ public class ConversaoERParaAFN {
         return autTemp;
     }
 
-    public Automato fechoKleene(Automato aut) {
+    private Automato fechoKleene(Automato aut) {
         Automato autTemp = new Automato();
         // Adiciona estados do afn de entrada
         Iterator<Entry<String, Estado>> iteratorEstadosEsq =
@@ -177,8 +190,7 @@ public class ConversaoERParaAFN {
         }
         // adiciona transicao epsilon dos estados finais do afn de entrada
         // para o antigo estado inicial dele
-        Iterator<Entry<String, Estado>> iteratorEstadosFinaisAut =
-                aut.getEstadosFinais().entrySet().iterator();
+        Iterator<Entry<String, Estado>> iteratorEstadosFinaisAut = aut.getEstadosFinais().entrySet().iterator();
         while (iteratorEstadosFinaisAut.hasNext()) {
             String estadoFinal = iteratorEstadosFinaisAut.next().getKey();
             autTemp.setTransicao(estadoFinal, aut.getEstadoInicial().getID(), "*");
@@ -193,13 +205,19 @@ public class ConversaoERParaAFN {
         return autTemp;
     }
 
-    public Automato epsilon(Automato aut) {
-        // seta estado inicial do afn como final
-        aut.setEstadoFinal(aut.getEstadoInicial().getID());
-        return aut;
+    private Automato palavraVazia() {
+        Automato autTemp = new Automato();
+        String rotulo = getNextSimbol();
+        // Cria um estado
+        autTemp.setEstado(rotulo);
+        // que eh inicial
+        autTemp.setEstadoInicial(rotulo);
+        // e tambem final
+        autTemp.setEstadoFinal(rotulo);
+        return autTemp;
     }
 
-    public Automato linguagemVazia() {
+    private Automato linguagemVazia() {
         Automato aut = new Automato();
         String estado = getNextSimbol();
         aut.setEstado(estado);
@@ -208,7 +226,7 @@ public class ConversaoERParaAFN {
         return aut;
     }
 
-    public Automato a(String caracter) {
+    private Automato a(String caracter) {
         Automato autTemp = new Automato();
         String idEstadoInicial = getNextSimbol();
         String idEstadoFinal = getNextSimbol();
@@ -252,30 +270,179 @@ public class ConversaoERParaAFN {
             javax.swing.JOptionPane.showMessageDialog(null, "Problemas com a localização do arquivo de entrada. " + ex);
             return null;
         }
+        // guarda as cadeias de entrada em uma outra variavel -> Isso ta feio 
+        // pra caramba, mas tem coisas mais urgentes pra cuidar
+        for (int i = 0; i < erCadeias.size(); i++) {
+            cadeias.add((String) erCadeias.get(i));
+        }
+        // remove a posicao inicial (ER)
+        cadeias.remove(0);
         return erCadeias;
     }
 
-    private void lerER() {
+    /**
+     * Retira todos os símbolos da ER, substituindo-os por seus respectivos
+     * AFN's.
+     */
+    private ArrayList leituraInicialER(String ER) {
+        ArrayList ERInicial = new ArrayList();
         for (int i = 0; i < ER.length(); i++) {
             if (ER.substring(i, i + 1).equals(".")) {
-                if (!andamentoTransformacao.isEmpty()) {
-                    andamentoTransformacao.add(".");
-                }
+                ERInicial.add(".");
             } else if (ER.substring(i, i + 1).equals("+")) {
-                //uniao(ER.substring(i - 1, i), ER.substring(i + 1, i + 2));
+                ERInicial.add("+");
             } else if (ER.substring(i, i + 1).equals("*")) {
-                //fechoKleene(ER.substring(i - 1, i));
-            } else if (ER.substring(i, i + 1).matches("[a-zA-Z_0-9]")) {
-                AFN = a(ER.substring(i, i + 1));
-                andamentoTransformacao.add(AFN);
+                ERInicial.add("*");
+            } else if (ER.substring(i, i + 1).matches("[a-z_0-9]")) {
+                ERInicial.add(a(ER.substring(i, i + 1)));
+            } else if (ER.substring(i, i + 1).equals("(")) {
+                ERInicial.add("(");
+            } else if (ER.substring(i, i + 1).equals(")")) {
+                ERInicial.add(")");
             } else if (ER.substring(i, i + 1).equals("E")) {
-                //epsilon(ER.substring(i, i + 1));
+                ERInicial.add(palavraVazia());
             } else if (ER.substring(i, i + 1).equals("V")) {
-                //linguagemVazia(ER.substring(i, i + 1));
-            } else if (ER.substring(i, i + 1).equals("(")) {    // verifica a precedencia de parenteses
-                Automato automatoAux = new Automato();
-
+                ERInicial.add(linguagemVazia());
             }
         }
+        return ERInicial;
+    }
+
+    private ArrayList getERDentroParenteses(ArrayList ER) {
+        ArrayList erDoParenteses = new ArrayList();
+        for (int i = 0; i < ER.size(); i++) {
+            if (ER.get(i).equals("(")) {
+                i++;
+                while (!ER.get(i).equals(")")) {
+                    erDoParenteses.add(ER.get(i));
+                    i++;
+                }
+                break;
+            }
+        }
+        return erDoParenteses;
+    }
+
+    /**
+     * Resolve a ER contida no parenteses.
+     *
+     * @param erInicial
+     * @return Automato
+     */
+    private Automato resolveERSemParenteses(ArrayList erInicial) {
+        Automato aut;
+        ArrayList aux = new ArrayList();
+        ArrayList<Integer> marcacoes = new ArrayList<>();
+        // precedencia inicial: fecho de kleene
+        for (int j = 0; j < erInicial.size(); j++) {
+            aux.add(erInicial.get(j));
+            if (erInicial.get(j).equals("*")) {
+                aut = fechoKleene((Automato) erInicial.get(j - 1));
+                // marca o anterior para apagar depois, o resultado
+                // vai sobrescrever a posicao atual, tambem descartavel, o "*"
+                marcacoes.add(j - 1);
+                // adiciona aut
+                aux.add(j, aut);
+                // remove o elemento que foi empurrado pra frente 
+                aux.remove(j + 1);
+            }
+        }
+        // ordena as marcacoes
+        Collections.sort(marcacoes);
+        Collections.reverse(marcacoes);
+        // elimina posicoes marcadas
+        for (int j = 0; j < marcacoes.size(); j++) {
+            aux.remove(marcacoes.get(j).intValue());
+        }
+        // copia completamente o conteudo do aux na erSemParenteses
+        erInicial = aux;
+        // limpa aux
+        aux = new ArrayList();
+        // limpa as marcacoes
+        marcacoes = new ArrayList<>();
+        // precedencia seguinte: concatenacao
+        for (int j = 0; j < erInicial.size(); j++) {
+            aux.add(erInicial.get(j));
+            if (erInicial.get(j).equals(".")) {
+                aut = concatenacao((Automato) aux.get(j - 1),
+                        (Automato) erInicial.get(j + 1));
+                // marca o atual e o anterior do auxiliar (A1 + ), para apagar 
+                // posteriormente
+                marcacoes.add(j);
+                marcacoes.add(j - 1);
+                // pula o proximo, porque fez parte da computacao anterior
+                j++;
+                // adiciona aut no lugar do proximo
+                aux.add(j, aut);
+            }
+        }
+        // ordena as marcacoes
+        Collections.sort(marcacoes);
+        Collections.reverse(marcacoes);
+        // elimina posicoes marcadas
+        for (int j = 0; j < marcacoes.size(); j++) {
+            aux.remove(marcacoes.get(j).intValue());
+        }
+        // copia completamente o conteudo do aux na erSemParenteses
+        erInicial = aux;
+        // limpa aux
+        aux = new ArrayList();
+        // limpa as marcacoes
+        marcacoes = new ArrayList<>();
+        // precedencia seguinte: uniao
+        for (int j = 0; j < erInicial.size(); j++) {
+            aux.add(erInicial.get(j));
+            if (erInicial.get(j).equals("+")) {
+                aut = uniao((Automato) aux.get(j - 1),
+                        (Automato) erInicial.get(j + 1));
+                // apaga o atual e o anterior do auxiliar (A1 + )
+                marcacoes.add(j);
+                marcacoes.add(j - 1);
+                // pula o proximo, porque fez parte da computacao anterior
+                j++;
+                // adiciona aut
+                aux.add(aut);
+            }
+        }
+        // ordena as marcacoes
+        Collections.sort(marcacoes);
+        Collections.reverse(marcacoes);
+        // elimina posicoes marcadas
+        for (int j = 0; j < marcacoes.size(); j++) {
+            aux.remove(marcacoes.get(j).intValue());
+        }
+        // copia completamente o conteudo do aux na erSemParenteses
+        erInicial = aux;
+        return (Automato) erInicial.get(0);
+    }
+
+    private ArrayList integraResultadoParenteses(Automato automatoDoParenteses, ArrayList erInicial) {
+        ArrayList erFinal = new ArrayList();
+        for (int i = 0; i < erInicial.size(); i++) {
+            if (erInicial.get(i).equals("(")) {
+                erFinal.add(automatoDoParenteses);
+                while (!erInicial.get(i).equals(")")) {
+                    i++;
+                }
+                // pula o parenteses 
+                i++;
+                // copia todo o resto da ER
+                for (int j = i; j < erInicial.size(); j++) {
+                    erFinal.add(erInicial.get(j));
+                }
+                break;      // abandona o loop 
+            } else {
+                erFinal.add(erInicial.get(i));
+            }
+        }
+        return erFinal;
+    }
+	
+    public Automato getAFN() {
+        return AFN;
+    }
+
+    public ArrayList<String> getCadeias() {
+        return cadeias;
     }
 }
